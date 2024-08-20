@@ -1,7 +1,7 @@
 import plotly.express as px
 import pandas as pd
 
-df = pd.read_excel("../datasource/eletrecidade.xlsx")
+df = pd.read_excel("./datasource/eletrecidade.xlsx")
 
 fig = px.bar(
     df,
