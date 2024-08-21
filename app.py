@@ -9,7 +9,6 @@ app = Dash(__name__)
 
 server = app.server
 
-
 fig = px.bar(
     data_eletrecidade,
     x="Referência",
@@ -17,7 +16,6 @@ fig = px.bar(
     title="Gastos com Eletrecidade de 2021 à 2024",
     labels={"Valor": "Valor (R$)", "Referência": "Meses/Ano"},
 )
-
 
 app.layout = html.Div([
     html.H1('Projeto de extensão'),
@@ -27,6 +25,4 @@ app.layout = html.Div([
     ),
 ])
 
-
-
-app.run_server(debug=True)
+app.run_server(debug=True, port=8050)
