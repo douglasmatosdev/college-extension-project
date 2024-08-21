@@ -36,7 +36,7 @@ def display_color(month):
     return fig
 
 
-app.run_server(debug=True)
+app.run_server(debug=False)
 
 
 # fig = px.bar(
