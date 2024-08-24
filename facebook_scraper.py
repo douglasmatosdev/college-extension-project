@@ -82,12 +82,6 @@ data = {
     key2: [],
 }
 
-data_format_2 = {
-    "livro": [],
-    "reactions": [0, 0],
-}
-
-
 storage_message = {
     "livro_dos_espiritos_message": [],
     "evangelho_segundo_o_espiritismo_message": [],
