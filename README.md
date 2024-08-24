@@ -8,6 +8,11 @@ Projeto de extensão sobre "Tópicos de Big Data em Python" da faculdade Estáci
 pip install -r requirements.txt
 ```
 
+### Run App
+```bash
+python3 app.py
+```
+
 ### To run `facebook_scraper.py` is necessary fill the env variables in .env file, see example in .env.example
 
 running
