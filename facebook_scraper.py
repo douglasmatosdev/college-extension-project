@@ -90,66 +90,67 @@ reaction_selector = "div > span.xrbpyxo.x6ikm8r.x10wlt62.xlyipyv.x1exxlbk > span
 user_profile_selector = (
     "h2.html-h2 strong.html-strong span.html-span a span.xt0psk2 span"
 )
-n_scrolls = 500
+n_scrolls = int(os.getenv("SCROLLS"))
 for i in range(1, n_scrolls):
-    user_profile = driver.find_elements(By.CSS_SELECTOR, user_profile_selector)
+    # user_profile = driver.find_elements(By.CSS_SELECTOR, user_profile_selector)
     elements = driver.find_elements(
         By.CSS_SELECTOR, "[data-ad-comet-preview='message']"
     )
-    message = [div.text for div in elements]
+    message = ' '.join([div.text for div in elements])
 
-    if profile_name in user_profile[0].text.lower().strip():
+    print("scroll - ", i)
+    # if profile_name in user_profile[0].text.lower().strip():
+    if (
+        "livro dos espiritos" in message.lower().strip()
+        or "livro dos espíritos" in message.lower().strip()
+    ):
+        if message.lower().strip() not in storage_message["livro_dos_espiritos_message"]:
+            reaction_element = driver.find_elements(
+                By.CSS_SELECTOR, reaction_selector
+            )
+            storage_message["livro_dos_espiritos_message"].extend(
+                [message.lower().strip()]
+            )
+
+            data["livro_dos_espiritos"].extend([reaction_element[0].text])
+            data["evangelho_segundo_o_espiritismo"].extend(
+                ["0"]
+            )  # Ensure same length
+            
+
+    elif "evangelho segundo o espiritismo" in message.lower().strip():
         if (
-            "livro dos espiritos" in message[0].lower().strip()
-            or "livro dos espíritos" in message[0].lower().strip()
+            message.lower().strip()
+            not in storage_message["evangelho_segundo_o_espiritismo_message"]
         ):
-            if message[0].lower().strip() not in storage_message["livro_dos_espiritos_message"]:
-                reaction_element = driver.find_elements(
-                    By.CSS_SELECTOR, reaction_selector
-                )
-                storage_message["livro_dos_espiritos_message"].extend(
-                    [message[0].lower().strip()]
-                )
+            reaction_element = driver.find_elements(
+                By.CSS_SELECTOR, reaction_selector
+            )
 
-                data["livro_dos_espiritos"].extend([reaction_element[0].text])
-                data["evangelho_segundo_o_espiritismo"].extend(
-                    ["0"]
-                )  # Ensure same length
-                print(reaction_element[0].text)
-
-        elif "evangelho segundo o espiritismo" in message[0].lower().strip():
-            if (
-                message[0].lower().strip()
-                not in storage_message["evangelho_segundo_o_espiritismo_message"]
-            ):
-                reaction_element = driver.find_elements(
-                    By.CSS_SELECTOR, reaction_selector
-                )
-
-                storage_message["evangelho_segundo_o_espiritismo_message"].extend(
-                    [message[0].lower().strip()]
-                )
-                data["evangelho_segundo_o_espiritismo"].extend(
-                    [reaction_element[0].text]
-                )
-                data["livro_dos_espiritos"].extend(["0"])  # Ensure same length
-                print(reaction_element[0].text)
-
-        else:
-            print("One or both strings are not present in the messages.")
+            storage_message["evangelho_segundo_o_espiritismo_message"].extend(
+                [message.lower().strip()]
+            )
+            data["evangelho_segundo_o_espiritismo"].extend(
+                [reaction_element[0].text]
+            )
             data["livro_dos_espiritos"].extend(["0"])  # Ensure same length
-            data["evangelho_segundo_o_espiritismo"].extend(["0"])  # Ensure same length
+            
 
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(2)
+    else:
+        print("Not found")
+        data["livro_dos_espiritos"].extend(["0"])  # Ensure same length
+        data["evangelho_segundo_o_espiritismo"].extend(["0"])  # Ensure same length
+
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(1)
 
 print(data)
 
 df = pd.DataFrame(data)
-# Check if data.csv file exists
-if os.path.exists(path_root_project + "/data.csv"):
+# Check if data_scraped.csv file exists
+if os.path.exists(path_root_project + "/datasource/data_scraped.csv"):
     # If file exists, delete it
-    os.remove(path_root_project + "/data.csv")
+    os.remove(path_root_project + "/datasource/data_scraped.csv")
 
-# Save DataFrame to data.csv file
-df.to_csv(path_root_project + "/data.csv", index=False)
+# Save DataFrame to data_scraped.csv file
+df.to_csv(path_root_project + "/datasource/data_scraped.csv", index=False)
