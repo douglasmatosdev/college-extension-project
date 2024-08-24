@@ -4,8 +4,8 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.common.exceptions import StaleElementReferenceException
 import time
-import os
 
 from dotenv import load_dotenv
 import pandas as pd
@@ -72,82 +72,111 @@ driver.get(os.getenv("FACEBOOK_PROFILE"))
 
 time.sleep(2)
 
+key1 = "livro_dos_espiritos"
+key2 = "evangelho_segundo_o_espiritismo"
+
+empty = "0"
+
 data = {
-    "livro_dos_espiritos": [],
-    "evangelho_segundo_o_espiritismo": [],
+    key1: [],
+    key2: [],
 }
+
+data_format_2 = {
+    "livro": [],
+    "reactions": [0, 0],
+}
+
 
 storage_message = {
     "livro_dos_espiritos_message": [],
     "evangelho_segundo_o_espiritismo_message": [],
 }
 
-profile_name = "allan kardec"
 reaction_selector = "div > span.xrbpyxo.x6ikm8r.x10wlt62.xlyipyv.x1exxlbk > span > span"
 user_profile_selector = (
     "h2.html-h2 strong.html-strong span.html-span a span.xt0psk2 span"
 )
-n_scrolls = int(os.getenv("SCROLLS"))
-for i in range(1, n_scrolls):
-    # user_profile = driver.find_elements(By.CSS_SELECTOR, user_profile_selector)
+
+
+def sanitize_data(data):
+    if len(data[key1]) == len(data[key2]):
+        for i in range(len(data[key1])):
+            if i < len(data[key1]):
+                if data[key1][i] == empty and data[key2][i] == empty:
+                    del data[key1][i]
+                    del data[key2][i]
+
+
+def write_this(data, file_name):
+    df = pd.DataFrame(data)
+    # Check if data_scraped.csv file exists
+    if os.path.exists(path_root_project + "/datasource/" + file_name):
+        # If file exists, delete it
+        os.remove(path_root_project + "/datasource/" + file_name)
+
+    # Save DataFrame to data_scraped.csv file
+    df.to_csv(path_root_project + "/datasource/" + file_name, index=False)
+
+
+def write_data(data):
+    sanitize_data(data)
+
+    write_this(data, "data_scraped.csv")
+
+
+def get_reaction_count():
+    reaction_element = driver.find_elements(By.CSS_SELECTOR, reaction_selector)
+    reaction_count = reaction_element[0].text.strip()
+    reaction_count = reaction_count if reaction_count else empty
+    return reaction_count
+
+
+def write_reaction_count(k1, v1, k2, v2):
+    data[k1].extend([v1])
+    data[k2].extend([v2])  # Ensure same length
+    write_data(data)
+
+
+def write_message(key, msg):
+    storage_message[key].extend([msg])
+
+
+def get_messages():
     elements = driver.find_elements(
         By.CSS_SELECTOR, "[data-ad-comet-preview='message']"
     )
-    message = ' '.join([div.text for div in elements])
+    message = ""
+    for div in elements:
+        try:
+            message += div.text + " "
+        except StaleElementReferenceException:
+            continue
+    message = message.lower().strip()
+    return message
+
+
+n_scrolls = int(os.getenv("SCROLLS"))
+for i in range(1, n_scrolls):
+    message = get_messages()
 
     print("scroll - ", i)
-    # if profile_name in user_profile[0].text.lower().strip():
-    if (
-        "livro dos espiritos" in message.lower().strip()
-        or "livro dos espíritos" in message.lower().strip()
-    ):
-        if message.lower().strip() not in storage_message["livro_dos_espiritos_message"]:
-            reaction_element = driver.find_elements(
-                By.CSS_SELECTOR, reaction_selector
-            )
-            storage_message["livro_dos_espiritos_message"].extend(
-                [message.lower().strip()]
-            )
 
-            data["livro_dos_espiritos"].extend([reaction_element[0].text])
-            data["evangelho_segundo_o_espiritismo"].extend(
-                ["0"]
-            )  # Ensure same length
-            
+    if "livro dos espiritos" in message or "livro dos espíritos" in message:
+        if message not in storage_message["livro_dos_espiritos_message"]:
+            write_message("livro_dos_espiritos_message", message)
+            write_reaction_count(key1, get_reaction_count(), key2, empty)
 
-    elif "evangelho segundo o espiritismo" in message.lower().strip():
-        if (
-            message.lower().strip()
-            not in storage_message["evangelho_segundo_o_espiritismo_message"]
-        ):
-            reaction_element = driver.find_elements(
-                By.CSS_SELECTOR, reaction_selector
-            )
-
-            storage_message["evangelho_segundo_o_espiritismo_message"].extend(
-                [message.lower().strip()]
-            )
-            data["evangelho_segundo_o_espiritismo"].extend(
-                [reaction_element[0].text]
-            )
-            data["livro_dos_espiritos"].extend(["0"])  # Ensure same length
-            
+    elif "evangelho segundo o espiritismo" in message or "evangelho" in message:
+        if message not in storage_message["evangelho_segundo_o_espiritismo_message"]:
+            write_message("evangelho_segundo_o_espiritismo_message", message)
+            write_reaction_count(key1, empty, key2, get_reaction_count())
 
     else:
         print("Not found")
-        data["livro_dos_espiritos"].extend(["0"])  # Ensure same length
-        data["evangelho_segundo_o_espiritismo"].extend(["0"])  # Ensure same length
+        write_reaction_count(key1, empty, key2, empty)
 
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(0.3)
+    time.sleep(2)
 
-print(data)
-
-df = pd.DataFrame(data)
-# Check if data_scraped.csv file exists
-if os.path.exists(path_root_project + "/datasource/data_scraped.csv"):
-    # If file exists, delete it
-    os.remove(path_root_project + "/datasource/data_scraped.csv")
-
-# Save DataFrame to data_scraped.csv file
-df.to_csv(path_root_project + "/datasource/data_scraped.csv", index=False)
+driver.quit()

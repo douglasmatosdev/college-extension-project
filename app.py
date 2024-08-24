@@ -3,8 +3,22 @@ import plotly.express as px
 import pandas as pd
 
 data_eletricidade = pd.read_excel("./datasource/eletricidade.xlsx")
-data_internet= pd.read_excel("./datasource/internet.xlsx")
+data_internet = pd.read_excel("./datasource/internet.xlsx")
 data_scraped = pd.read_csv("./datasource/data_scraped.csv")
+
+data_scraped_formated = pd.DataFrame(
+    {
+        "livro": ["livro_dos_espiritos", "evangelho_segundo_o_espiritismo"],
+        "reactions": [
+            data_scraped[data_scraped["livro_dos_espiritos"] != 0][
+                "livro_dos_espiritos"
+            ].count(),
+            data_scraped[data_scraped["evangelho_segundo_o_espiritismo"] != 0][
+                "evangelho_segundo_o_espiritismo"
+            ].count(),
+        ],
+    }
+)
 
 app = Dash(__name__)
 
@@ -26,22 +40,28 @@ figInternet = px.bar(
     labels={"VALOR": "Valor (R$)", "PERÍODO": "Meses/Ano"},
 )
 
-figDataScraped = px.bar(data_scraped, title="Reações em posts do Facebook", labels={"value": "Quantidade", "variable": "Livros"})
+figDataScrapedBarChart = px.bar(
+    data_scraped,
+    title="Reações em posts do Facebook por estudo de livro",
+    labels={"value": "Quantidade", "variable": "Livros"},
+)
 
-app.layout = html.Div([
-    html.H1('Projeto de extensão'),
-    dcc.Graph(
-        id="graph_eletricidade",
-        figure=figEletricidade
-    ),
-    dcc.Graph(
-        id="graph_internet",
-        figure=figInternet
-    ),
-    dcc.Graph(
-        id="graph_data_scraped",
-        figure=figDataScraped
-    )
-])
+figDataScrapedPieChart = px.pie(
+    data_scraped_formated,
+    title="Reações em posts do Facebook por estudo de livro",
+    values="reactions",
+    names="livro",
+)
 
-app.run_server(debug=True, port=8050, host='0.0.0.0')
+
+app.layout = html.Div(
+    [
+        html.H1("Projeto de extensão"),
+        dcc.Graph(id="graph_eletricidade", figure=figEletricidade),
+        dcc.Graph(id="graph_internet", figure=figInternet),
+        dcc.Graph(id="graph_data_scraped", figure=figDataScrapedBarChart),
+        dcc.Graph(id="graph_data_scraped_pie", figure=figDataScrapedPieChart),
+    ]
+)
+
+app.run_server(debug=True, port=8050, host="0.0.0.0")
