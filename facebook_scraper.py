@@ -29,7 +29,7 @@ path_root_project = os.getenv("PATH_ROOT_PROJECT")
 # Specify the path to the ChromeDriver executable
 service = Service(path_root_project + "/chromedriver")
 
-# specify the path to chromedriver.exe (download and save on your computer)
+# specify the path to chromedriver (download and save on your computer)
 driver = webdriver.Chrome(
     service=service,
     options=chrome_options,
@@ -139,7 +139,7 @@ for i in range(1, n_scrolls):
         data["evangelho_segundo_o_espiritismo"].extend(["0"])  # Ensure same length
 
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    time.sleep(1)
+    time.sleep(0.3)
 
 print(data)
 

@@ -4,6 +4,7 @@ import pandas as pd
 
 data_eletricidade = pd.read_excel("./datasource/eletricidade.xlsx")
 data_internet= pd.read_excel("./datasource/internet.xlsx")
+data_scraped = pd.read_csv("./datasource/data_scraped.csv")
 
 app = Dash(__name__)
 
@@ -25,6 +26,8 @@ figInternet = px.bar(
     labels={"VALOR": "Valor (R$)", "PERÍODO": "Meses/Ano"},
 )
 
+figDataScraped = px.bar(data_scraped, title="Reações em posts do Facebook", labels={"value": "Quantidade", "variable": "Livros"})
+
 app.layout = html.Div([
     html.H1('Projeto de extensão'),
     dcc.Graph(
@@ -34,6 +37,10 @@ app.layout = html.Div([
     dcc.Graph(
         id="graph_internet",
         figure=figInternet
+    ),
+    dcc.Graph(
+        id="graph_data_scraped",
+        figure=figDataScraped
     )
 ])
 
