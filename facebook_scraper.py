@@ -1,12 +1,9 @@
 # imports here
-from datetime import date
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver import ActionChains
 import time
 import os
 
@@ -28,7 +25,7 @@ chrome_options.add_experimental_option("prefs", prefs)
 
 # Step 2: Log into your personal Facebook account
 # MAKE SURE to replace my_username and my_password with your own unique values
-path_root_project = "/home/dsilva/www/college-extension-project"
+path_root_project = os.getenv("PATH_ROOT_PROJECT")
 # Specify the path to the ChromeDriver executable
 service = Service(path_root_project + "/chromedriver")
 
